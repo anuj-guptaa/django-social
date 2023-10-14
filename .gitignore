@@ -1,4 +1,5 @@
 .vscode-server
 *.log
+*.pyc
 
 !.keeps
