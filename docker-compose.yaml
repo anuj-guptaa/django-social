@@ -1,0 +1,11 @@
+version: '3'
+services:
+  dev:
+    image: django-social:v1
+    build: 
+      context: .
+      dockerfile: .Dockerfile
+    working_dir: /root/code
+    volumes:
+      - ./source_code:/root/code
+      - ./.vscode-server:/root/.vscode-server
