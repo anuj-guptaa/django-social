@@ -25,7 +25,7 @@ class Post(models.Model):
   no_of_likes = models.IntegerField(default=0)
 
   def __str__(self):
-    return str(self.id)
+    return self.user.user.username + " - " + str(self.id)
 
 class LikePost(models.Model):
   post = models.ForeignKey(Post, on_delete=models.CASCADE)
@@ -33,3 +33,10 @@ class LikePost(models.Model):
 
   def __str__(self):
     return self.user.user.username
+
+class Follow(models.Model):
+  follower = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='following')
+  followee = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='followee')
+
+  def __str__(self):
+    return self.follower.user.username + self.followee.user.username

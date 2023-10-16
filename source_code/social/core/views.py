@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile, Post, LikePost
+from .models import Profile, Post, LikePost, Follow
 
 
 @login_required(login_url="signin")
@@ -67,6 +67,27 @@ def profile(request, pk):
   }
 
   return render(request, 'profile.html', context)
+
+@login_required(login_url="signin")
+def follow(request):
+  if request.method == "POST":
+    follower = Profile.objects.get(user=request.user)
+
+    followee_user_object = User.objects.get(username=request.POST['followee'])
+    followee = Profile.objects.get(user=followee_user_object)
+    print(follower)
+    print(followee)
+
+    if Follow.objects.filter(follower=follower, followee=followee).first():
+      delete_follower = Follow.objects.get(follower=follower, followee=followee)
+      delete_follower.delete()
+      return redirect('/profile/'+followee_user_object.username)
+    else:
+      new_follower = Follow.objects.create(follower=follower, followee=followee)
+      new_follower.save()
+      return redirect('/profile/'+followee_user_object.username)
+  else:
+    return redirect('/')
 
 @login_required(login_url="signin")
 def settings(request):
