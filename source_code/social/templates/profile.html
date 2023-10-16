@@ -41,14 +41,22 @@
 					<span style="color: white; font-size: 27px;"><b>{{user_post_length}} Posts</b></span>
 					{% endif %}
 
-					<span style="color: white; font-size: 27px;"><b>1.7m followers</b></span>
-					<span style="color: white; font-size: 27px;"><b>3.5k following</b></span>
+					{% if user_followers == 0 or user_followers > 1 %}
+					<span style="color: white; font-size: 27px;"><b>{{ user_followers }} Followers</b></span>
+					{% else %}
+					<span style="color: white; font-size: 27px;"><b>{{ user_followers }} Follower</b></span>
+					{% endif %}
+
+					<span style="color: white; font-size: 27px;"><b>{{ user_followings }} Following</b></span>
 
 					<input type="hidden" value="{{ user_object }}" name="followee" />
 
+					{% if user_object.username == user.username %}
+					<a href="/settings" title="" style="background-color: #ffc0cb; border: #ffc0cb;" data-ripple="">Settings</a>
+					{% else %}
 					<a href="" title="" data-ripple=""><button type="submit"
-							style="background-color: #ffc0cb; border: #ffc0cb;">Follow</button></a>
-
+							style="background-color: #ffc0cb; border: #ffc0cb;">{{ button_text }}</button></a>
+					{% endif %}
 				</div>
 			</form>
 
