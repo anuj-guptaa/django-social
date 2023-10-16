@@ -18,18 +18,25 @@ class Profile(models.Model):
 
 class Post(models.Model):
   id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-  user = models.CharField(max_length=100)
+  user = models.ForeignKey(Profile, on_delete=models.CASCADE)
   image = models.ImageField(upload_to='post_images')
   caption = models.TextField()
   created_at = models.DateTimeField(default=datetime.now)
   no_of_likes = models.IntegerField(default=0)
 
   def __str__(self):
-    return self.user
+    return self.user.user.username + " - " + str(self.id)
 
 class LikePost(models.Model):
-  post_id = models.CharField(max_length=500)
-  username = models.CharField(max_length=100)
+  post = models.ForeignKey(Post, on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile, on_delete=models.CASCADE)
 
   def __str__(self):
-    return self.username
+    return self.user.user.username
+
+class Follow(models.Model):
+  follower = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='following')
+  followee = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='followee')
+
+  def __str__(self):
+    return self.follower.user.username + self.followee.user.username

@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User, auth
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile, Post, LikePost
+from .models import Profile, Post, LikePost, Follow
 
 
 @login_required(login_url="signin")
@@ -12,14 +12,17 @@ def index(request):
   user_profile = Profile.objects.get(user=user_object)
 
   posts = Post.objects.all()
-  return render(request, 'index.html', {'user_profile': user_profile, 'posts': posts})
+  # user_likes = LikePost.objects.filter(username=request.user.username)
+  return render(request, 'index.html', {'user_profile': user_profile, 'posts': posts })
 
 @login_required(login_url="signin")
 def upload(request):
-
-  
   if request.method == "POST":
-    user = request.user.username
+
+    user_object = User.objects.get(username=request.user.username)
+    user_profile = Profile.objects.get(user=user_object)
+
+    user = user_profile
     image = request.FILES.get('image_upload')
     caption = request.POST['caption']
 
@@ -32,13 +35,14 @@ def upload(request):
 
 @login_required(login_url="signin")
 def like_post(request):
-  username = request.user.username
+  user = Profile.objects.get(user=request.user)
   post_id = request.GET.get('post_id')
   post = Post.objects.get(id=post_id)
   
-  like_filter = LikePost.objects.filter(post_id=post_id, username=username).first()
+
+  like_filter = LikePost.objects.filter(post=post, user=user).first()
   if like_filter == None:
-    new_like = LikePost.objects.create(post_id=post_id, username=username)
+    new_like = LikePost.objects.create(post=post, user=user)
     new_like.save()
     post.no_of_likes = post.no_of_likes + 1
     post.save()
@@ -52,7 +56,7 @@ def like_post(request):
 def profile(request, pk):
   user_object = User.objects.get(username=pk)
   user_profile = Profile.objects.get(user=user_object)
-  user_posts = Post.objects.filter(user=user_object)
+  user_posts = Post.objects.filter(user=user_profile)
   user_post_length = len(user_posts)
 
   context = {
@@ -63,6 +67,27 @@ def profile(request, pk):
   }
 
   return render(request, 'profile.html', context)
+
+@login_required(login_url="signin")
+def follow(request):
+  if request.method == "POST":
+    follower = Profile.objects.get(user=request.user)
+
+    followee_user_object = User.objects.get(username=request.POST['followee'])
+    followee = Profile.objects.get(user=followee_user_object)
+    print(follower)
+    print(followee)
+
+    if Follow.objects.filter(follower=follower, followee=followee).first():
+      delete_follower = Follow.objects.get(follower=follower, followee=followee)
+      delete_follower.delete()
+      return redirect('/profile/'+followee_user_object.username)
+    else:
+      new_follower = Follow.objects.create(follower=follower, followee=followee)
+      new_follower.save()
+      return redirect('/profile/'+followee_user_object.username)
+  else:
+    return redirect('/')
 
 @login_required(login_url="signin")
 def settings(request):
