@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .models import Profile, Post, LikePost, Follow
 from itertools import chain
+import random
 
 @login_required(login_url="signin")
 def index(request):
@@ -25,9 +26,35 @@ def index(request):
 
   feed_list = list(chain(*feed))
 
+  # User suggestion part
+  all_users = User.objects.all()
+  user_following_all = []
+
+  for user in user_following:
+    user_list = User.objects.get(username=user.followee)
+    user_following_all.append(user_list)
+
+  new_suggestions_list = [u for u in list(all_users) if (u not in list(user_following_all))]
+  current_user = User.objects.filter(username=request.user.username)
+  admin_user = User.objects.filter(username='admin')
+  final_suggestions_list = [u for u in list(new_suggestions_list) if ( u not in list(current_user))]
+  final_suggestions_list = [u for u in list(final_suggestions_list) if ( u not in list(admin_user))]
+  random.shuffle(final_suggestions_list)
+
+  username_profile = []
+  username_profile_list = []
+
+  for users in final_suggestions_list:
+    username_profile.append(users.id)
+
+  for ids in username_profile:
+    profile_lists = Profile.objects.filter(id_user=ids)
+    username_profile_list.append(profile_lists)
+
+  suggestions_username_profile_list = list(chain(*username_profile_list))
   # posts = Post.objects.all()
   # user_likes = LikePost.objects.filter(username=request.user.username)
-  return render(request, 'index.html', {'user_profile': user_profile, 'posts': feed_list })
+  return render(request, 'index.html', {'user_profile': user_profile, 'posts': feed_list, 'suggestions_username_profile_list': suggestions_username_profile_list })
 
 @login_required(login_url="signin")
 def upload(request):
